@@ -1,0 +1,55 @@
+import scipy
+import scipy.linalg as sl
+
+def lanczos(H, m):
+    """Use the Lanczos algorithm to order m to diagonalize the matrix H
+
+    """
+    
+    n = len(H)
+    
+    # Create our random initial vector r, as well as lists to collect alpha
+    # and beta
+    r = scipy.random.random(n)
+    betaList = [norm(r)]
+    vNow = scipy.zeros(n)
+    alphaList = []
+    
+    for j in range(1, m):
+        
+        beta = betaList[-1]
+        vNext = r / beta
+        
+        r = scipy.dot(H, vNext) - beta * vNow
+        
+        alpha = scipy.dot(vNext, r)
+        alphaList.append(alpha)
+        
+        r -= alpha * vNext
+        
+        betaList.append(norm(r))
+    
+    
+    return alphaList, betaList
+    
+    
+def Hm(alphaBetaTuple):
+    
+    alphaList, betaList = alphaBetaTuple
+    
+    l = len(alphaList)
+    h = scipy.zeros((l, l))
+    
+    for i in range(l):
+        
+        h[i,i] = alphaList[i]
+        if i + 1 < l:
+            h[i, i + 1] = betaList[i + 1]
+            h[i + 1, i] = betaList[i + 1]
+    
+    return h
+
+
+def approximateEigenvalues(H, m):
+    
+    return sl.eigvals(Hm(lanczos(H, m)))
